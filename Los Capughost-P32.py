@@ -61,7 +61,7 @@ try:
                             entradas[pathlib.PurePosixPath(interno).name] = z.read(interno)
             else:
                 entradas[pathlib.PurePosixPath(nombre).name] = datos
-        
+
         def tipo_paquete(nombre):
             n = nombre.lower()
             if 'ejempl' in n: return 'ejemplos'
@@ -101,11 +101,11 @@ filas = []
 for i, evento in enumerate(ALERTAS):
     regla = evento.get('rule') or {}
     filas.append({
-        'indice': i, 
+        'indice': i,
         'fecha': evento.get('timestamp',''),
-        'regla_id': str(regla.get('id','')), 
+        'regla_id': str(regla.get('id','')),
         'descripcion': str(regla.get('description','')),
-        'nivel': int(regla.get('level',0)), 
+        'nivel': int(regla.get('level',0)),
         'grupos': ', '.join(regla.get('groups') or []),
         'origen': evento['_origen_archivo'].split('/')[-1]
     })
@@ -115,14 +115,14 @@ resumen = pd.DataFrame(filas)
 # 3. Preparación de X e y (Misión 3)
 # -----------------------------------------------------
 MAPA_MESAS = {
- '19005':'CUMPLIMIENTO','19014':'CUMPLIMIENTO',
- '533':'SISTEMAS_Y_RED','60227':'SISTEMAS_Y_RED','60228':'SISTEMAS_Y_RED',
- '60602':'SISTEMAS_Y_RED','60608':'SISTEMAS_Y_RED','60716':'SISTEMAS_Y_RED',
- '61102':'SISTEMAS_Y_RED','61103':'SISTEMAS_Y_RED','61104':'SISTEMAS_Y_RED','61110':'SISTEMAS_Y_RED',
- '60104':'IDENTIDAD_Y_ACCESOS','60154':'IDENTIDAD_Y_ACCESOS','60204':'IDENTIDAD_Y_ACCESOS',
- '67022':'IDENTIDAD_Y_ACCESOS','67023':'IDENTIDAD_Y_ACCESOS','92652':'IDENTIDAD_Y_ACCESOS',
- '91703':'IDENTIDAD_Y_ACCESOS','91710':'IDENTIDAD_Y_ACCESOS','91713':'IDENTIDAD_Y_ACCESOS',
- '91556':'CORREO_Y_NUBE','91702':'CORREO_Y_NUBE','91707':'CORREO_Y_NUBE','91724':'CORREO_Y_NUBE',
+'19005':'CUMPLIMIENTO','19014':'CUMPLIMIENTO',
+'533':'SISTEMAS_Y_RED','60227':'SISTEMAS_Y_RED','60228':'SISTEMAS_Y_RED',
+'60602':'SISTEMAS_Y_RED','60608':'SISTEMAS_Y_RED','60716':'SISTEMAS_Y_RED',
+'61102':'SISTEMAS_Y_RED','61103':'SISTEMAS_Y_RED','61104':'SISTEMAS_Y_RED','61110':'SISTEMAS_Y_RED',
+'60104':'IDENTIDAD_Y_ACCESOS','60154':'IDENTIDAD_Y_ACCESOS','60204':'IDENTIDAD_Y_ACCESOS',
+'67022':'IDENTIDAD_Y_ACCESOS','67023':'IDENTIDAD_Y_ACCESOS','92652':'IDENTIDAD_Y_ACCESOS',
+'91703':'IDENTIDAD_Y_ACCESOS','91710':'IDENTIDAD_Y_ACCESOS','91713':'IDENTIDAD_Y_ACCESOS',
+'91556':'CORREO_Y_NUBE','91702':'CORREO_Y_NUBE','91707':'CORREO_Y_NUBE','91724':'CORREO_Y_NUBE',
 }
 resumen['mesa_sugerida'] = resumen.regla_id.map(MAPA_MESAS)
 
@@ -131,11 +131,11 @@ def aplanar_campos(obj, prefijo='', tope=90):
     resultado = []
     for clave, valor in obj.items():
         nombre = (prefijo + '.' + clave).strip('.')
-        if isinstance(valor, dict): 
+        if isinstance(valor, dict):
             resultado.extend(aplanar_campos(valor, nombre, tope))
         elif not isinstance(valor, (list, dict)):
             resultado.append(nombre)
-        if len(resultado) > tope: 
+        if len(resultado) > tope:
             break
     return resultado[:tope]
 
@@ -148,7 +148,7 @@ def texto_alerta(a):
     valores_tecnicos = [office.get(k, '') for k in ('Operation','Workload','Verdict','DeliveryAction','PolicyAction','DetectionMethod')]
     valores_tecnicos += [system.get(k, '') for k in ('eventID','channel','providerName')]
     partes = [
-        str(regla.get('description', '')), 
+        str(regla.get('description', '')),
         ' '.join(str(g) for g in (regla.get('groups') or [])),
         ' '.join(str(v) for v in valores_tecnicos if v is not None),
         ' '.join(aplanar_campos(data)[:45]),
@@ -177,10 +177,10 @@ def preparar_entradas():
     ], sparse_threshold=0.3)
 
 MODELOS = {
- 'Árbol de decisión': Pipeline([('preparacion', preparar_entradas()), ('modelo', DecisionTreeClassifier(max_depth=7, min_samples_leaf=2, random_state=42))]),
- 'Random Forest': Pipeline([('preparacion', preparar_entradas()), ('modelo', RandomForestClassifier(n_estimators=120, max_depth=10, min_samples_leaf=1, random_state=42, n_jobs=-1))]),
- 'SVM': Pipeline([('preparacion', preparar_entradas()), ('modelo', LinearSVC(class_weight='balanced', random_state=42, max_iter=4000))]),
- 'ANN (MLP)': Pipeline([('preparacion', preparar_entradas()), ('reduccion', TruncatedSVD(n_components=24, random_state=42)),
+'Árbol de decisión': Pipeline([('preparacion', preparar_entradas()), ('modelo', DecisionTreeClassifier(max_depth=7, min_samples_leaf=2, random_state=42))]),
+'Random Forest': Pipeline([('preparacion', preparar_entradas()), ('modelo', RandomForestClassifier(n_estimators=120, max_depth=10, min_samples_leaf=1, random_state=42, n_jobs=-1))]),
+'SVM': Pipeline([('preparacion', preparar_entradas()), ('modelo', LinearSVC(class_weight='balanced', random_state=42, max_iter=4000))]),
+'ANN (MLP)': Pipeline([('preparacion', preparar_entradas()), ('reduccion', TruncatedSVD(n_components=24, random_state=42)),
                        ('escala', StandardScaler()), ('modelo', MLPClassifier(hidden_layer_sizes=(24,12), max_iter=600, solver='lbfgs', random_state=42))]),
 }
 
@@ -202,7 +202,7 @@ for nombre, modelo in EVALUADOS.items():
     PREDICCIONES[nombre] = predicciones
     aciertos = int((predicciones == y_test.to_numpy()).sum())
     resultados.append({
-        'Modelo': nombre, 
+        'Modelo': nombre,
         'Aciertos (de 19)': aciertos,
         'Porcentaje correcto': round(100 * aciertos / len(y_test), 1)
     })
@@ -212,16 +212,40 @@ transposed_res = metricas.copy()
 display(transposed_res)
 
 # -----------------------------------------------------
-# 6. Preparación e Inferencia del LLM Local (Misión 6)
+# 6. Evaluación de Ejemplo Inédito (Sin reentrenar)
+# -----------------------------------------------------
+titulo('🧪 Evaluación de Inferencia en Ejemplo Nuevo', 'Pasando una alerta externa inédita a los modelos entrenados')
+
+# Construimos una nueva alerta totalmente externa
+ejemplo_inedito = {
+    'texto_modelo': 'suspicious user authentication failed multiple times ExchangeOnline email logon failure',
+    'nivel': 10
+}
+
+df_inedito = pd.DataFrame([ejemplo_inedito])
+
+res_nuevo = []
+for nombre, modelo in MODELOS.items():
+    pred = modelo.predict(df_inedito[columnas_X])[0]
+    res_nuevo.append({
+        'Modelo Evaluado': nombre,
+        'Mesa Predicha': pred
+    })
+
+df_res_nuevo = pd.DataFrame(res_nuevo)
+display(df_res_nuevo)
+
+# -----------------------------------------------------
+# 7. Preparación e Inferencia del LLM Local (Misión 6)
 # -----------------------------------------------------
 try:
     import torch
     from transformers import AutoTokenizer, AutoModelForCausalLM
-    
+
     usa_gpu = torch.cuda.is_available()
     MODELO_LLM = 'Qwen/Qwen2.5-1.5B-Instruct' if usa_gpu else 'Qwen/Qwen2.5-0.5B-Instruct'
     print('🖥️ Entorno LLM:', 'GPU' if usa_gpu else 'CPU')
-    
+
     TOKENIZER_LLM = AutoTokenizer.from_pretrained(MODELO_LLM)
     LLM_LOCAL = AutoModelForCausalLM.from_pretrained(
         MODELO_LLM,
@@ -261,7 +285,7 @@ try:
     PROMPT_B = f'{INSTRUCCIONES_LLM}\n\nALERTA (JSON):\n{BASE_AL}\n\nRECOMENDACIÓN: {prediccion_caso}. Explica cómo verificarlo.'
 
     def generar_con_llm(mensaje_input):
-        mensajes = [{'role': 'system', 'content': 'Redacta explicaciones educativas.'}, {'role': 'user', 'content': message_input}]
+        mensajes = [{'role': 'system', 'content': 'Redacta explicaciones educativas.'}, {'role': 'user', 'content': mensaje_input}]
         codificado = TOKENIZER_LLM.apply_chat_template(mensajes, tokenize=True, add_generation_prompt=True, return_tensors='pt').to(LLM_LOCAL.device)
         with torch.inference_mode():
             pred = LLM_LOCAL.generate(codificado, max_new_tokens=150, do_sample=False, pad_token_id=TOKENIZER_LLM.eos_token_id)
@@ -270,7 +294,7 @@ try:
     print("Generando Explicaciones con el LLM local...")
     RESPUESTA_A = generar_con_llm(PROMPT_A)
     RESPUESTA_B = generar_con_llm(PROMPT_B)
-    
+
     titulo('📝 Experimento A: Solo Wazuh')
     mensaje(RESPUESTA_A)
     titulo('🧠 Experimento B: Wazuh + Predicción')
